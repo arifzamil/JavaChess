@@ -1,9 +1,11 @@
 package pieces;
 
 import notationConverter.Converter;
+import comp124graphics.*;
 
-public class Piece {
+public class Piece{
 
+    Image dispImage, capImage;
     private String pos;
     private final String COLOR;
     String type;
@@ -20,34 +22,34 @@ public class Piece {
         double startFile = (double) coord[1];
         double rankDiff = Math.abs(destRank - startRank);
         double fileDiff = Math.abs(destFile - startFile);
-        double m = (destRank - startRank) / (destFile - startFile);
+        double m = rankDiff / fileDiff;
         switch (type) {
             case "R":
                 return !(m == 0.0 || m == Double.POSITIVE_INFINITY || m == Double.NEGATIVE_INFINITY);
             case "N":
-                return ((rankDiff != 2 && rankDiff != 1) || (fileDiff != 2 && fileDiff != 1) || (rankDiff == fileDiff));
+                return ((rankDiff != 2.0 && rankDiff != 1.0) || (fileDiff != 2.0 && fileDiff != 1.0) || (rankDiff == fileDiff));
             case "B":
                 return !(Math.abs(m) == 1.0);
             case "Q":
                 return !(m == 0.0 || m == Double.POSITIVE_INFINITY || m == Double.NEGATIVE_INFINITY || Math.abs(m) == 1.0);
             case "K":
                 return !((m == 0.0 || m == Double.POSITIVE_INFINITY || m == Double.NEGATIVE_INFINITY || Math.abs(m) == 1.0) &&
-                        rankDiff == 1.0 && fileDiff == 1.0);
+                        (rankDiff == 1.0 && fileDiff == 1.0) || (rankDiff + fileDiff == 1.0));
             case "P":
                 if (getColor().equals("white")) {
-                    if (rankDiff > 0) {
+                    if (destRank - startRank > 0) {
                         return true;
                     } else if (startRank == 6) {
-                        return (Math.abs(rankDiff) > 2);
+                        return (rankDiff > 2);
                     }
-                    return (rankDiff != -1);
+                    return (destRank - startRank != -1);
                 } else {
-                    if (rankDiff <= 0) {
+                    if (destRank - startRank <= 0) {
                         return true;
                     } else if (startRank == 1) {
-                        return (Math.abs(rankDiff) > 2);
+                        return (rankDiff > 2);
                     }
-                    return rankDiff != 1;
+                    return destRank - startRank != 1;
                 }
         }
         return false;
@@ -68,4 +70,8 @@ public class Piece {
     public String getType() {
         return type;
     }
+
+    public Image getDispImage() {return dispImage;}
+
+    public Image getCapImage() {return capImage;}
 }

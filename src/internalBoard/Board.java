@@ -18,6 +18,9 @@ public class Board {
         initializePieces();
     }
 
+    /**
+     * Initializes the pieces by setting their positions and adding them to the board.
+     */
     private void initializePieces() {
         int wPawnCount = 0;
         int wRookCount = 0;
@@ -125,7 +128,14 @@ public class Board {
         }
     }
 
-    private boolean canMove(Piece piece, String move) {
+    /**
+     * Checks to see if a given move is legal.
+     *
+     * @param piece A chess piece.
+     * @param move  A target square.
+     * @return <code>True</code> if <code>move</code> is legal, <code>false</code> if not.
+     */
+    public boolean canMove(Piece piece, String move) {
         int[] moveCoord = converter.notationToCoord(move);
         int[] posCoord = converter.notationToCoord(piece.getPos());
         double startRank = (double) posCoord[0];
@@ -134,11 +144,11 @@ public class Board {
         double destFile = (double) moveCoord[1];
         double rankDiff = Math.abs(destRank - startRank);
         double fileDiff = Math.abs(destFile - startFile);
-        double m = (destRank - startRank) / (destFile - startFile);
+        double m = rankDiff / fileDiff;
         if (move.equals(piece.getPos()) || piece.isRuleViolation((int) destRank, (int) destFile)) {
             return false;
         }
-        if (m != 1.0 && m != 0.0 && m != Double.NEGATIVE_INFINITY && m != Double.POSITIVE_INFINITY) {
+        if (m != 1.0 && m != 0.0 && m != Double.NEGATIVE_INFINITY && m != Double.POSITIVE_INFINITY && m != 0.5 && m != 2.0) {
             return false;
         }
         if (!piece.getType().equals("N")) {
@@ -211,11 +221,17 @@ public class Board {
             } else if (!isEmpty(move)) {
                 return false;
             }
-            return !(Math.abs(fileDiff) != 0);
+            return (!(Math.abs(fileDiff) != 0));
         }
         return true;
     }
 
+    /**
+     * Moves a piece to a target square (if legal), and adjusts its position accordingly.
+     *
+     * @param piece A chess piece.
+     * @param move  A target square.
+     */
     public void move(Piece piece, String move) {
         if (canMove(piece, move)) {
             int[] oldPos = converter.notationToCoord(piece.getPos());
@@ -230,6 +246,9 @@ public class Board {
         }
     }
 
+    /**
+     * Creates the set of pieces needed for the game.
+     */
     private void createPieces() {
         char[] letters = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
         for (int i = 0; i < 8; i++) {
@@ -251,11 +270,34 @@ public class Board {
         whitePieces.add(new Queen("white", "d1"));
         blackPieces.add(new Queen("black", "d8"));
         whitePieces.add(new King("white", "e1"));
-        blackPieces.add(new King("white", "e8"));
+        blackPieces.add(new King("black", "e8"));
     }
 
+    /**
+     * Checks to see if a target square on the board is empty.
+     *
+     * @param coord A target square.
+     * @return <code>True</code> if this square is empty, <code>false</code> if not.
+     */
     private boolean isEmpty(String coord) {
         int[] boardCoord = converter.notationToCoord(coord);
         return internalBoard[boardCoord[0]][boardCoord[1]] == null;
     }
+
+    public Piece[][] getInternalBoard() {
+        return internalBoard;
+    }
+
+    public void printBoard() {
+        for (int x = 0; x < 8; x++) {
+            for (int y = 0; y < 8; y++) {
+                if(internalBoard[x][y] != null)
+                    System.out.print(internalBoard[x][y].getType());
+                else
+                    System.out.print(" ");
+            }
+            System.out.println();
+        }
+    }
 }
+
