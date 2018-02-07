@@ -55,6 +55,7 @@ public class Piece{
         return false;
     }
 
+
     public String getPos() {
         return pos;
     }
@@ -74,4 +75,9 @@ public class Piece{
     public Image getDispImage() {return dispImage;}
 
     public Image getCapImage() {return capImage;}
+
+    @Override
+    public String toString() {
+        return COLOR.substring(0,1) + type;
+    }
 }

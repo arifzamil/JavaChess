@@ -3,6 +3,7 @@ package externalBoard;
 import notationConverter.Converter;
 import internalBoard.Board;
 import pieces.*;
+
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.Color;
@@ -13,38 +14,42 @@ import comp124graphics.*;
 
 
 public class Chess {
+    private static BoardSetup game;
+
     public static void main(String[] args) {
-        new BoardSetup("Chess", 800, 800);
+        game = new BoardSetup("Chess", 1000, 800);
     }
 
 
-    public static class Tile extends Rectangle {
+    private static class Tile extends Rectangle {
         private Color tileColor;
 
-        public Tile(int x, int y, int width, int height) {
+        private Tile(int x, int y, int width, int height) {
             super(x, y, width, height);
         }
 
-        public void setTileColor(Color col) {
+        private void setTileColor(Color col) {
             tileColor = col;
         }
 
-        public Color getTileColor() {
+        private Color getTileColor() {
             return tileColor;
         }
     }
+
 
     public static class BoardSetup extends CanvasWindow implements MouseListener, MouseMotionListener {
         private Board internalBoard;
         private Converter convo;
         private Tile[][] tiles;
-        private ArrayList<Image> captured;
         private Tile highlighted = null;
         private Piece sPicece = null;
         private int sPX;
         private int sPY;
         private final int BOARD_SIZE = 80;
         private final int ALIGN_PIECE = 8;
+        private final int SHIFT_BOARD_RIGHT = 100;
+        private final int SHIFT_BOARD_DOWN = 50;
         private final Color[] BOARD_COLORS = {new Color(255, 253, 208), Color.GRAY};
 
         private BoardSetup(String title, int width, int height) {
@@ -61,25 +66,29 @@ public class Chess {
         }
 
 
-        private void redraw(){
-            for(int row = 0; row < 8; row++){
-                for(int col = 0; col < 8; col++){
-                    int y_ = row * BOARD_SIZE + ALIGN_PIECE;
-                    int x_ = col * BOARD_SIZE + ALIGN_PIECE;
-                    if(internalBoard.getInternalBoard()[row][col] != null){
-                        internalBoard.getInternalBoard()[row][col].getDispImage().setPosition(x_, y_);
-                        add(internalBoard.getInternalBoard()[row][col].getDispImage());
+
+        private void redraw() {
+            removeAll();
+            GUIBoard();
+            showCaps();
+            for (int row = 0; row < 8; row++) {
+                for (int col = 0; col < 8; col++) {
+                    int y_ = row * BOARD_SIZE + ALIGN_PIECE + SHIFT_BOARD_DOWN;
+                    int x_ = col * BOARD_SIZE + ALIGN_PIECE + SHIFT_BOARD_RIGHT;
+                    if (internalBoard.getInternalBoard()[row][col] != null) {
+                        add(internalBoard.getInternalBoard()[row][col].getDispImage(), x_, y_);
                     }
                 }
             }
         }
 
 
+
         private void GUIBoard() {
             for (int row = 0; row < 8; row++) {
                 for (int col = 0; col < 8; col++) {
-                    int x = col * BOARD_SIZE;
-                    int y = row * BOARD_SIZE;
+                    int x = col * BOARD_SIZE + SHIFT_BOARD_RIGHT;
+                    int y = row * BOARD_SIZE + SHIFT_BOARD_DOWN;
                     Tile rect = new Tile(x, y, BOARD_SIZE, BOARD_SIZE);
                     if ((row % 2) == (col % 2)) {
                         rect.setFillColor(BOARD_COLORS[0]);
@@ -115,22 +124,63 @@ public class Chess {
 
 
 
+        private void showCaps() {
+            internalBoard.alphabetizeCaps();
+            ArrayList<Piece> caps = internalBoard.getCaptured();
+            int x = 8 * BOARD_SIZE + ALIGN_PIECE + SHIFT_BOARD_RIGHT;
+            int y = 200;
+            int bSpace = 12;
+            int wSpace = 12;
+            for(Piece p : caps){
+                if(p.getType().equals("P")) {
+                    if (p.getColor().equals("white")) {
+                        add(p.getCapImage(), x + wSpace, y - 50);
+                        wSpace += 12;
+                    }
+                    else {
+                        add(p.getCapImage(), x + bSpace, game.getHeight() - y - 50);
+                        bSpace += 12;
+                    }
+                }
+            }
+            wSpace = 12;
+            bSpace = 12;
+            for(Piece p : caps){
+                if(!p.getType().equals("P")) {
+                    if (p.getColor().equals("white")) {
+                        add(p.getCapImage(), x + wSpace, y);
+                        wSpace += 12;
+                    }
+                    else {
+                        add(p.getCapImage(), x + bSpace, game.getHeight() - y);
+                        bSpace += 12;
+                    }
+                }
+            }
+        }
+
+
         @Override
         public void mousePressed(MouseEvent e) {
             double x_ = e.getX();
             double y_ = e.getY();
-            int x = (int) (x_ / BOARD_SIZE);
-            int y = (int) (y_ / BOARD_SIZE);
+            int x = (int) ((x_ - SHIFT_BOARD_RIGHT) / BOARD_SIZE);
+            int y = (int) ((y_ - SHIFT_BOARD_DOWN) / BOARD_SIZE);
 
             if (x < 8 && y < 8) {
+
                 if (sPicece == null) {
                     sPicece = internalBoard.getInternalBoard()[y][x];
                     if (sPicece != null) {
-                        remove(sPicece.getDispImage());
-                        add(sPicece.getDispImage());
-                        sPX = x;
-                        sPY = y;
-                    }
+                        {
+                            remove(sPicece.getDispImage());
+                            add(sPicece.getDispImage());
+                            sPX = x;
+                            sPY = y;
+                        }
+                    } else
+                        sPicece = null;
+
                 }
             }
         }
@@ -139,19 +189,18 @@ public class Chess {
         public void mouseReleased(MouseEvent e) {
             double x_ = e.getX();
             double y_ = e.getY();
-            int x = (int) (x_ / BOARD_SIZE);
-            int y = (int) (y_ / BOARD_SIZE);
+            int x = (int) ((x_ - SHIFT_BOARD_RIGHT) / BOARD_SIZE);
+            int y = (int) ((y_ - SHIFT_BOARD_DOWN) / BOARD_SIZE);
 
             if (x < 8 && y < 8) {
                 if (sPicece != null) {
                     internalBoard.move(sPicece, convo.coordToNotation(y, x));
-                    System.out.println(convo.coordToNotation(y, x) + sPicece.getType());
                     internalBoard.printBoard();
+                    sPicece = null;
+
                 }
-                sPicece = null;
-            }
-            else if(sPicece != null)  {
-                sPicece.getDispImage().setPosition(sPX * BOARD_SIZE + ALIGN_PIECE, sPY * BOARD_SIZE + ALIGN_PIECE);
+            } else if (sPicece != null) {
+                sPicece.getDispImage().setPosition(sPX * BOARD_SIZE + ALIGN_PIECE + SHIFT_BOARD_RIGHT, sPY * BOARD_SIZE + ALIGN_PIECE + SHIFT_BOARD_DOWN);
                 sPicece = null;
                 deselectTile();
             }
@@ -162,8 +211,8 @@ public class Chess {
         public void mouseDragged(MouseEvent e) {
             double x_ = e.getX();
             double y_ = e.getY();
-            int x = (int) (x_ / BOARD_SIZE);
-            int y = (int) (y_ / BOARD_SIZE);
+            int x = (int) ((x_ - SHIFT_BOARD_RIGHT) / BOARD_SIZE);
+            int y = (int) ((y_ - SHIFT_BOARD_DOWN) / BOARD_SIZE);
             selectTile(x, y);
 
 

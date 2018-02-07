@@ -6,9 +6,10 @@ import pieces.*;
 import java.util.ArrayList;
 
 public class Board {
-
+    private String turn = "white";
     private String fen;
     private Piece[][] internalBoard = new Piece[8][8];
+    private ArrayList<Piece> captured = new ArrayList<>(32);
     private ArrayList<Piece> whitePieces = new ArrayList<>(16);
     private ArrayList<Piece> blackPieces = new ArrayList<>(16);
     private Converter converter = new Converter();
@@ -136,6 +137,7 @@ public class Board {
      * @return <code>True</code> if <code>move</code> is legal, <code>false</code> if not.
      */
     public boolean canMove(Piece piece, String move) {
+
         int[] moveCoord = converter.notationToCoord(move);
         int[] posCoord = converter.notationToCoord(piece.getPos());
         double startRank = (double) posCoord[0];
@@ -145,6 +147,9 @@ public class Board {
         double rankDiff = Math.abs(destRank - startRank);
         double fileDiff = Math.abs(destFile - startFile);
         double m = rankDiff / fileDiff;
+        if (!turn.equals(piece.getColor())) {
+            return false;
+        }
         if (move.equals(piece.getPos()) || piece.isRuleViolation((int) destRank, (int) destFile)) {
             return false;
         }
@@ -241,8 +246,15 @@ public class Board {
             int destRank = destPos[0];
             int destFile = destPos[1];
             piece.setPos(move);
+            if (internalBoard[destRank][destFile] != null) {
+                captured.add(internalBoard[destRank][destFile]);
+            }
             internalBoard[destRank][destFile] = piece;
             internalBoard[oldRank][oldFile] = null;
+            if (turn.equals("white"))
+                turn = "black";
+            else
+                turn = "white";
         }
     }
 
@@ -284,20 +296,84 @@ public class Board {
         return internalBoard[boardCoord[0]][boardCoord[1]] == null;
     }
 
+    private int[] countCaps() {
+        int wP = 0;
+        int wN = 0;
+        int wB = 0;
+        int wR = 0;
+        int wQ = 0;
+        int bP = 0;
+        int bN = 0;
+        int bB = 0;
+        int bR = 0;
+        int bQ = 0;
+        for (Piece p : captured) {
+            if (p.getColor().equals("white")) {
+                switch (p.getType()) {
+                    case "R":
+                        if (p.getColor().equals("white"))
+                            wR++;
+                        else
+                            bR++;
+                    case "N":
+                        if (p.getColor().equals("white"))
+                            wN++;
+                        else
+                            bN++;
+                    case "B":
+                        if (p.getColor().equals("white"))
+                            wB++;
+                        else
+                            bB++;
+                    case "Q":
+                        if (p.getColor().equals("white"))
+                            wQ++;
+                        else
+                            bQ++;
+                    case "P":
+                        if (p.getColor().equals("white"))
+                            wP++;
+                        else
+                            bP++;
+                }
+            }
+        }
+        int[] counter = {wP, wN, wB, wR, wQ, bP, bN, bB, bR, bQ};
+        return counter;
+    }
+
+    public void alphabetizeCaps() {
+        ArrayList<Piece> holder = new ArrayList<>(captured.size());
+        String[] types = {"P", "N", "B", "R", "Q"};
+        for (int i = 0; i < 5; i++) {
+            for (Piece p : captured) {
+                if(p.getType().equals(types[i])){
+                    holder.add(p);
+                }
+            }
+        }
+        captured = holder;
+    }
+
     public Piece[][] getInternalBoard() {
         return internalBoard;
+    }
+
+    public ArrayList<Piece> getCaptured() {
+        return captured;
     }
 
     public void printBoard() {
         for (int x = 0; x < 8; x++) {
             for (int y = 0; y < 8; y++) {
-                if(internalBoard[x][y] != null)
-                    System.out.print(internalBoard[x][y].getType());
+                if (internalBoard[x][y] != null)
+                    System.out.print(internalBoard[x][y] + " ");
                 else
-                    System.out.print(" ");
+                    System.out.print("   ");
             }
             System.out.println();
         }
     }
+
 }
 
