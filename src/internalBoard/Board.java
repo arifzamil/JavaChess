@@ -296,53 +296,58 @@ public class Board {
         return internalBoard[boardCoord[0]][boardCoord[1]] == null;
     }
 
-    private int[] countCaps() {
-        int wP = 0;
-        int wN = 0;
-        int wB = 0;
-        int wR = 0;
-        int wQ = 0;
-        int bP = 0;
-        int bN = 0;
-        int bB = 0;
-        int bR = 0;
-        int bQ = 0;
-        for (Piece p : captured) {
-            if (p.getColor().equals("white")) {
-                switch (p.getType()) {
-                    case "R":
-                        if (p.getColor().equals("white"))
-                            wR++;
-                        else
-                            bR++;
-                    case "N":
-                        if (p.getColor().equals("white"))
-                            wN++;
-                        else
-                            bN++;
-                    case "B":
-                        if (p.getColor().equals("white"))
-                            wB++;
-                        else
-                            bB++;
-                    case "Q":
-                        if (p.getColor().equals("white"))
-                            wQ++;
-                        else
-                            bQ++;
-                    case "P":
-                        if (p.getColor().equals("white"))
-                            wP++;
-                        else
-                            bP++;
-                }
-            }
-        }
-        int[] counter = {wP, wN, wB, wR, wQ, bP, bN, bB, bR, bQ};
-        return counter;
+    public ArrayList<Piece> createPromotionOptions(String col){
+        ArrayList<Piece> promotionOptions = new ArrayList<>(4);
+        promotionOptions.add(new Queen(col, "c4"));
+        promotionOptions.add(new Rook(col, "d4"));
+        promotionOptions.add(new Bishop(col, "e4"));
+        promotionOptions.add(new Knight(col, "f4"));
+        return promotionOptions;
     }
 
-    public void alphabetizeCaps() {
+    public void promoted(Piece p, String newPiece) {
+        ArrayList<Piece> promotionOptions = createPromotionOptions(p.getColor());
+        if(p.getType().equals("P")) {
+            int[] coord = converter.notationToCoord(p.getPos());
+            switch (newPiece) {
+                case "Q":
+                    Queen proQueen = (Queen)promotionOptions.get(0);
+                    proQueen.setPos(p.getPos());
+                    proQueen.setCapImage(p.getCapImageFile());
+                    internalBoard[coord[0]][coord[1]] = proQueen;
+                    break;
+                case "R":
+                    Rook proRook = (Rook)promotionOptions.get(1);
+                    proRook.setPos(p.getPos());
+                    proRook.setCapImage(p.getCapImageFile());
+                    internalBoard[coord[0]][coord[1]] = proRook;
+                    break;
+                case "B":
+                    Bishop proBish = (Bishop)promotionOptions.get(2);
+                    proBish.setPos(p.getPos());
+                    proBish.setCapImage(p.getCapImageFile());
+                    internalBoard[coord[0]][coord[1]] = proBish;
+                    break;
+                case "N":
+                    Knight proKnight = (Knight)promotionOptions.get(3);
+                    proKnight.setPos(p.getPos());
+                    proKnight.setCapImage(p.getCapImageFile());
+                    internalBoard[coord[0]][coord[1]] = proKnight;
+                    break;
+            }
+        }
+    }
+
+
+    public Piece[][] getInternalBoard() {
+        return internalBoard;
+    }
+
+    public String getTurn() {
+        return turn;
+    }
+
+    public ArrayList<Piece> getCaptured() {
         ArrayList<Piece> holder = new ArrayList<>(captured.size());
         String[] types = {"P", "N", "B", "R", "Q"};
         for (int i = 0; i < 5; i++) {
@@ -353,13 +358,6 @@ public class Board {
             }
         }
         captured = holder;
-    }
-
-    public Piece[][] getInternalBoard() {
-        return internalBoard;
-    }
-
-    public ArrayList<Piece> getCaptured() {
         return captured;
     }
 

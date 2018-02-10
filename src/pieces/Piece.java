@@ -3,13 +3,14 @@ package pieces;
 import notationConverter.Converter;
 import comp124graphics.*;
 
-public class Piece{
+public class Piece {
 
-    Image dispImage, capImage;
+    protected String capImageFile;
+    protected Image dispImage, capImage;
     private String pos;
     private final String COLOR;
-    String type;
-    Converter converter = new Converter();
+    protected String type;
+    private Converter converter = new Converter();
 
     Piece(String color, String pos) {
         this.pos = pos;
@@ -72,12 +73,26 @@ public class Piece{
         return type;
     }
 
-    public Image getDispImage() {return dispImage;}
+    public void setCapImage(String capImageFile) {
+        this.capImage = new Image(0, 0, capImageFile);
+    }
 
-    public Image getCapImage() {return capImage;}
+    public Image getDispImage() {
+        return dispImage;
+    }
+
+    public Image getCapImage() {
+        return capImage;
+    }
+
+    public String getCapImageFile() {
+        return capImageFile;
+    }
+
+
 
     @Override
     public String toString() {
-        return COLOR.substring(0,1) + type;
+        return COLOR.substring(0, 1) + type;
     }
 }
